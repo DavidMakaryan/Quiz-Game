@@ -75,9 +75,83 @@
         android:text="1/10"
         android:textColor="#1F6BB8"
         />
+
     <TextView
-        android:layout_width=""
-        android:layout_height=""
+        android:id="@+id/question"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="-12dp"
+        android:background="@drawable/round_back_light_yellow10"
+        android:gravity="center"
+        android:minHeight="100dp"
+        android:text="Question will be here..."
+        android:padding="20dp"
+        android:textColor="#CC000000"
+        android:textSize="16sp"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/option1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/round_back_white_stroke2_10"
+        android:text="Option 1"
+        android:textColor="#1F6BB8"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/option2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/round_back_white_stroke2_10"
+        android:text="Option 2"
+        android:textColor="#1F6BB8"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/option3"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/round_back_white_stroke2_10"
+        android:text="Option 3"
+        android:textColor="#1F6BB8"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/option4"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/round_back_white_stroke2_10"
+        android:text="Option 4"
+        android:textColor="#1F6BB8"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/nextBtn"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/round_back_green20"
+        android:text="Next"
+        android:textColor="#1F6BB8"
+        />
+
 
 
 </LinearLayout>
