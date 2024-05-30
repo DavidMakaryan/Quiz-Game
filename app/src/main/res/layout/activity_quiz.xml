@@ -14,7 +14,7 @@
         android:background="#1F6BB8">
 
         <ImageView
-            android:id="@+id/backBtn"
+            android:id="@+id/back_btn"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_centerVertical="true"
@@ -148,7 +148,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="40dp"
         android:background="@drawable/round_back_green20"
-        android:text="Next"
+        android:text="Следующий Вопрос"
         android:textColor="#1F6BB8"
         />
 

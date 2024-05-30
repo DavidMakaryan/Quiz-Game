@@ -1,7 +1,9 @@
 package com.example.quizgame;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -12,13 +14,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.appcompat.widget.AppCompatImageView;
-import androidx.appcompat.widget.AppCompatTextView;
-
 
 public class QuizActivity extends AppCompatActivity {
 
@@ -33,19 +34,26 @@ public class QuizActivity extends AppCompatActivity {
     private int seconds = 0;
     private int totalTimeInMins = 1;
 
+    private List<QuestionsList> questionsList;
+
+    private int currentQuestionPosition = 0;
+    private String selectedOptionByUser = "";
+
+    private boolean answerShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_quiz);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+
+        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        final ImageView backBtn = findViewById(R.id.backBtn);
+        final ImageView back_btn = findViewById(R.id.back_btn);
         final TextView timer = findViewById(R.id.timer);
         final TextView selectedTopicName = findViewById(R.id.selectedTopicName);
 
@@ -59,36 +67,180 @@ public class QuizActivity extends AppCompatActivity {
 
         nextBtn = findViewById(R.id.nextBtn);
 
-
         final String getSelectedTopic = getIntent().getStringExtra("selectedTopic");
-
         selectedTopicName.setText(getSelectedTopic);
 
+        questionsList = QuestionsBank.getQuestions(getSelectedTopic);
+        Collections.shuffle(questionsList);
 
+        startTimer(timer);
 
+        questions.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
+        question.setText(questionsList.get(0).getQuestion());
+        option1.setText(questionsList.get(0).getOption1());
+        option2.setText(questionsList.get(0).getOption2());
+        option3.setText(questionsList.get(0).getOption3());
+        option4.setText(questionsList.get(0).getOption4());
+
+        back_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                quizTimer.purge();
+                quizTimer.cancel();
+                startActivity(new Intent(QuizActivity.this, MainActivity.class));
+                finish();
+            }
+        });
+
+        option1.setOnClickListener(v -> handleOptionClick(option1));
+
+        option2.setOnClickListener(v -> handleOptionClick(option2));
+
+        option3.setOnClickListener(v -> handleOptionClick(option3));
+
+        option4.setOnClickListener(v -> handleOptionClick(option4));
+
+        nextBtn.setOnClickListener(v -> {
+            if (selectedOptionByUser.isEmpty()) {
+                Toast.makeText(QuizActivity.this, "Пожалуйста, сделайте выбор", Toast.LENGTH_SHORT).show();
+            } else {
+                changeNextQuestion();
+            }
+        });
     }
 
-    private void startTimer (TextView timerTextView) {
-
+    private void startTimer(TextView timerTextView) {
         quizTimer = new Timer();
         quizTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-               if( seconds == 0) {
-                   totalTimeInMins--;
-                   seconds = 59;
-               } else if (seconds == 0 && totalTimeInMins == 0) {
-                 quizTimer.purge();
-                 quizTimer.cancel();
-
-                   Toast.makeText(QuizActivity.this, "Время Вышло", Toast.LENGTH_SHORT).show();
-
-                   Intent intent = new Intent();
+                if (seconds == 0 && totalTimeInMins == 0) {
+                    quizTimer.purge();
+                    quizTimer.cancel();
+                    runOnUiThread(() -> {
+                        Toast.makeText(QuizActivity.this, "Время Вышло", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(QuizActivity.this, QuizResults.class);
+                        intent.putExtra("correct", getCorrectAnswers());
+                        intent.putExtra("incorrect", getInCorrectAnswers());
+                        startActivity(intent);
+                    });
+                } else if (seconds == 0 && totalTimeInMins > 0) {
+                    totalTimeInMins--;
+                    seconds = 59;
+                } else {
+                    seconds--;
                 }
 
+                runOnUiThread(() -> {
+                    String finalMinutes = String.valueOf(totalTimeInMins);
+                    String finalSeconds = String.valueOf(seconds);
+
+                    if (finalMinutes.length() == 1) {
+                        finalMinutes = "0" + finalMinutes;
+                    }
+
+                    if (finalSeconds.length() == 1) {
+                        finalSeconds = "0" + finalSeconds;
+                    }
+
+                    timerTextView.setText(finalMinutes + ":" + finalSeconds);
+                });
             }
-        },1000,1000);
+        }, 1000, 1000);
+    }
 
+    private int getInCorrectAnswers() {
+        int incorrectAnswers = 0;
+        for (QuestionsList question : questionsList) {
+            if (!question.getUserSelectedAnswer().equals(question.getAnswer())) {
+                incorrectAnswers++;
+            }
+        }
+        return incorrectAnswers;
+    }
 
+    private int getCorrectAnswers() {
+        int correctAnswers = 0;
+        for (QuestionsList question : questionsList) {
+            if (question.getUserSelectedAnswer().equals(question.getAnswer())) {
+                correctAnswers++;
+            }
+        }
+        return correctAnswers;
+    }
+
+    private void handleOptionClick(AppCompatButton option) {
+        if (selectedOptionByUser.isEmpty() && !answerShown) {
+            selectedOptionByUser = option.getText().toString();
+            option.setBackgroundResource(R.drawable.round_back_red10);
+            option.setTextColor(Color.WHITE);
+            revealAnswer();
+            questionsList.get(currentQuestionPosition).setUserSelectedAnswer(selectedOptionByUser);
+        }
+    }
+
+    private void revealAnswer() {
+        final String getAnswer = questionsList.get(currentQuestionPosition).getAnswer();
+
+        if (option1.getText().toString().equals(getAnswer)) {
+            option1.setBackgroundResource(R.drawable.round_back_green10);
+            option1.setTextColor(Color.WHITE);
+        } else if (option2.getText().toString().equals(getAnswer)) {
+            option2.setBackgroundResource(R.drawable.round_back_green10);
+            option2.setTextColor(Color.WHITE);
+        } else if (option3.getText().toString().equals(getAnswer)) {
+            option3.setBackgroundResource(R.drawable.round_back_green10);
+            option3.setTextColor(Color.WHITE);
+        } else if (option4.getText().toString().equals(getAnswer)) {
+            option4.setBackgroundResource(R.drawable.round_back_green10);
+            option4.setTextColor(Color.WHITE);
+        }
+        answerShown = true;
+    }
+
+    private void changeNextQuestion() {
+        currentQuestionPosition++;
+
+        if ((currentQuestionPosition + 1) == questionsList.size()) {
+            nextBtn.setText("Готово");
+        }
+        if (currentQuestionPosition < questionsList.size()) {
+            selectedOptionByUser = "";
+            option1.setBackgroundResource(R.drawable.round_back_white_stroke2_10);
+            option1.setTextColor(Color.parseColor("#1F6BB8"));
+
+            option2.setBackgroundResource(R.drawable.round_back_white_stroke2_10);
+            option2.setTextColor(Color.parseColor("#1F6BB8"));
+
+            option3.setBackgroundResource(R.drawable.round_back_white_stroke2_10);
+            option3.setTextColor(Color.parseColor("#1F6BB8"));
+
+            option4.setBackgroundResource(R.drawable.round_back_white_stroke2_10);
+            option4.setTextColor(Color.parseColor("#1F6BB8"));
+
+            questions.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
+            question.setText(questionsList.get(currentQuestionPosition).getQuestion());
+            option1.setText(questionsList.get(currentQuestionPosition).getOption1());
+            option2.setText(questionsList.get(currentQuestionPosition).getOption2());
+            option3.setText(questionsList.get(currentQuestionPosition).getOption3());
+            option4.setText(questionsList.get(currentQuestionPosition).getOption4());
+            answerShown = false;
+        } else {
+            Intent intent = new Intent(QuizActivity.this, QuizResults.class);
+            intent.putExtra("correct", getCorrectAnswers());
+            intent.putExtra("incorrect", getInCorrectAnswers());
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        /* super.onBackPressed(); */
+
+        quizTimer.purge();
+        quizTimer.cancel();
+        startActivity(new Intent(QuizActivity.this, MainActivity.class));
+        finish();
     }
 }
