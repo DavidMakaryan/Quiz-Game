@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Brain Blitz</string>
-    <string name="football">Футбол</string>
-    <string name="countries">Страны</string>
-    <string name="facts">Факты</string>
-    <string name="math">Математика</string>
+
 </resources>
